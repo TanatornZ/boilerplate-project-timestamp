@@ -23,37 +23,22 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
-app.get("/api/:date?", (req, res) => {
-  const { date } = req.params.date;
-  var unixValue;
-  var utc;
-  var utcValue;
-  var json;
+app.get("/api/", function (req, res) {
+  res.json({ unix: Date.now(), utc: Date() });
+});
 
-  if (date == undefined) {
-    utc = new Date();
-    utcValue = utc.toUTCString();
-    unixValue = new Date(utc).valueOf();
-    json = { unix: parseInt(unixValue), utc: utcValue };
+app.get("/api/:date", (req, res) => {
+  let dateString = req.params.date;
+
+  if (!isNaN(Date.parse(dateString))) {
+    let dateObject = new Date(dateString);
+    res.json({ unix: dateObject.valueOf(), utc: dateObject.toUTCString() });
+  } else if (/\d{5,}/.test(dateString)) {
+    let dateInt = parseInt(dateString);
+    res.json({ unix: dateInt, utc: new Date(dateInt).toUTCString() });
   } else {
-    if (date.includes("-")) {
-      utc = new Date(date);
-      utcValue = utc.toUTCString();
-      unixValue = utc.valueOf();
-    } else {
-      const dateInt = parseInt(date);
-      unixValue = dateInt;
-      utc = new Date(unixValue * 1);
-      utcValue = utc.toUTCString();
-    }
-    if (utcValue == "Invalid Date") {
-      json = { error: "Invalid Date" };
-    } else {
-      json = { unix: parseInt(unixValue), utc: utcValue };
-    }
+    res.json({ error: "Invalid Date" });
   }
-
-  res.json(json);
 });
 
 // listen for requests :)
